@@ -3,454 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動簡報：從自動生成程式碼到無縫部署</title>
+    <title>系統核心架構 - 即時防災資訊系統</title>
+    
+    <!-- 引入 Tailwind CSS 進行快速且美觀的排版 -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 Lucide Icons 圖示庫 -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- 引入 Google Fonts (Noto Sans TC) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        hf: '#f59e0b', // Hugging Face Yellow
+                        anti: '#0ea5e9', // Antigravity Cyan
+                        claw: '#10b981', // Openclaw Emerald
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap');
-
+        /* 清新明亮設定與背景網格 */
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f4f4f5;
-            /* 防止選取文字時破壞版面，設定明顯的選取顏色 */
-            selection-background-color: #000;
-            selection-color: #fff;
-        }
-
-        /* 新粗野主義風格的陰影與框線 */
-        .brutal-border {
-            border: 6px solid #1e293b;
+            background-color: #f8fafc; /* Tailwind slate-50 */
+            color: #0f172a; /* Tailwind slate-900 */
+            overflow-x: hidden;
         }
         
-        .brutal-shadow {
-            box-shadow: 8px 8px 0px 0px #1e293b;
+        /* 淺色版點陣背景 */
+        .bg-grid {
+            background-size: 30px 30px;
+            background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.6;
         }
 
-        .brutal-button {
-            border: 4px solid #1e293b;
-            box-shadow: 6px 6px 0px 0px #1e293b;
-            transition: all 0.1s ease-in-out;
+        /* 漸層光暈裝飾 (淺色版) */
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.6;
         }
 
-        .brutal-button:active {
-            transform: translate(4px, 4px);
-            box-shadow: 2px 2px 0px 0px #1e293b;
+        /* 匡粗設計：粗邊框實體卡片 */
+        .bold-card {
+            background: #ffffff;
+            border: 2px solid #e2e8f0; /* slate-200 */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .brutal-button:disabled {
-            opacity: 0.5;
-            box-shadow: none;
-            transform: translate(6px, 6px);
-            cursor: not-allowed;
+        /* 卡片互動效果 */
+        .bold-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        /* 投影片切換動畫 */
-        .slide-enter {
-            animation: slideInRight 0.4s ease-out forwards;
+        /* 個別卡片 Hover 發光與粗邊框變化 */
+        .hover-border-github:hover { border-color: #334155; }
+        .hover-border-hf:hover { border-color: #f59e0b; }
+        .hover-border-anti:hover { border-color: #0ea5e9; }
+        .hover-border-claw:hover { border-color: #10b981; }
+
+        /* 滾動進入動畫 (Scroll Reveal) */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
         }
-        
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(50px); }
-            to { opacity: 1; transform: translateX(0); }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        /* 隱藏捲軸但可捲動 */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        /* 漸層文字 (加深對比以適應淺色背景) */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
-<body class="h-screen w-full overflow-hidden flex flex-col text-slate-800 selection:bg-slate-800 selection:text-white">
+<body class="antialiased selection:bg-blue-200 selection:text-blue-900">
 
-    <!-- 頂部進度條 -->
-    <div class="w-full h-3 bg-white border-b-4 border-slate-800">
-        <div id="progress-bar" class="h-full bg-emerald-400 w-0 transition-all duration-300 ease-out"></div>
-    </div>
+    <!-- 背景特效 -->
+    <div class="bg-grid"></div>
+    <div class="glow-blob bg-blue-200 w-96 h-96 top-10 left-10"></div>
+    <div class="glow-blob bg-emerald-200 w-96 h-96 bottom-10 right-10"></div>
+    <div class="glow-blob bg-amber-100 w-80 h-80 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
 
-    <!-- 主要內容區 -->
-    <main class="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 flex flex-col relative overflow-hidden">
+    <main class="relative z-10 max-w-5xl mx-auto px-6 py-20 min-h-screen flex flex-col justify-center">
         
-        <!-- 投影片容器 -->
-        <div id="slides-container" class="flex-1 relative w-full h-full">
-            <!-- 投影片內容將由 JavaScript 動態注入 -->
+        <!-- 頁首標題 -->
+        <header class="text-center mb-24 reveal active">
+            <div class="inline-flex items-center justify-center px-4 py-2 bg-white rounded-full border-2 border-slate-200 shadow-sm mb-6">
+                <i data-lucide="shield-check" class="text-blue-600 mr-2 w-5 h-5 stroke-[2.5]"></i>
+                <span class="text-sm font-bold tracking-wider text-slate-700">防災資訊系統技術解析</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black mb-6 tracking-tight text-slate-800">
+                探索系統的 <span class="text-gradient bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600">核心架構</span>
+            </h1>
+            <p class="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
+                深入解構系統底層的關鍵技術，了解我們如何整合自動化 AI 工具與雲端基礎設施，建構具備高實戰能力的即時應變體系。
+            </p>
+        </header>
+
+        <!-- 區塊 1：實戰情境與通報流程 -->
+        <section class="mb-24 relative">
+            <div class="absolute left-8 top-20 bottom-0 w-1 bg-gradient-to-b from-slate-200 to-transparent hidden md:block rounded-full"></div>
+            
+            <div class="reveal">
+                <div class="flex items-start md:items-center mb-8">
+                    <div class="w-16 h-16 rounded-2xl bg-white border-2 border-rose-200 shadow-md flex items-center justify-center mr-6 z-10 shrink-0 hidden md:flex">
+                        <i data-lucide="siren" class="w-8 h-8 text-rose-500 stroke-[2.5]"></i>
+                    </div>
+                    <div class="bold-card rounded-2xl p-6 flex-1 border-l-[8px] border-l-rose-500">
+                        <h2 class="text-2xl font-extrabold mb-3 flex items-center text-slate-800">
+                            <i data-lucide="cloud-lightning" class="mr-3 text-rose-500 stroke-[2.5]"></i> 應用情境：重大天災的即時災情掌握
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed text-lg font-medium">
+                            在颱風或豪雨等極端氣候下，各地災情往往難以於第一時間全面掌握，高度仰賴第一線人員的現場巡查。為因應龐大的通報需求，並提升災情掌控的即時性與效率，本系統導入以下 <strong class="text-rose-600 font-extrabold bg-rose-50 px-1 rounded">自動化資訊整合流程</strong>：
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 系統架構示意圖 (明亮版調整) -->
+                <div class="md:pl-22 md:ml-24 mb-10 relative overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-xl group">
+                    <div class="absolute inset-0 bg-gradient-to-t from-white/95 via-white/20 to-transparent z-10 pointer-events-none"></div>
+                    <img src="https://raw.githubusercontent.com/cwbdayi638/0317_disaster_demo/main/Gemini_Generated_Image_jrbjrnjrbjrnjrbj.png" 
+                         alt="" 
+                         class="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 group-hover:scale-105"
+                         onerror="this.src='https://placehold.co/800x400/f8fafc/e2e8f0?text=Image+Not+Found'">
+                    <div class="absolute bottom-0 left-0 right-0 p-5 z-20">
+                        <p class="text-slate-800 text-sm md:text-base font-extrabold flex items-center">
+                            <i data-lucide="image" class="w-5 h-5 mr-2 text-rose-500 stroke-[2.5] shrink-0"></i>
+                            AI 輔助災情通報與自動化整合系統示意圖
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 流程三步驟 (實體加粗邊框) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:pl-22 mt-4 md:ml-24">
+                    <div class="bg-white border-2 border-blue-200 rounded-xl p-6 shadow-sm relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+                        <div class="text-blue-700 font-extrabold text-lg mb-3 flex items-center relative z-10"><span class="bg-blue-100 text-blue-800 border-2 border-blue-200 px-2 py-0.5 rounded-md text-sm mr-2 shadow-sm">Step 1</span> 第一線回報</div>
+                        <p class="text-slate-600 text-sm font-medium relative z-10">第一線人員透過行動裝置快速通報現場狀況，即時回傳第一手災情資訊。</p>
+                    </div>
+                    <div class="bg-white border-2 border-purple-200 rounded-xl p-6 shadow-sm relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+                        <div class="text-purple-700 font-extrabold text-lg mb-3 flex items-center relative z-10"><span class="bg-purple-100 text-purple-800 border-2 border-purple-200 px-2 py-0.5 rounded-md text-sm mr-2 shadow-sm">Step 2</span> 自動化分析</div>
+                        <p class="text-slate-600 text-sm font-medium relative z-10">後端系統自動接收與彙整數據，並運用人工智慧 (AI) 精準分析龐大的回報訊息。</p>
+                    </div>
+                    <div class="bg-white border-2 border-emerald-200 rounded-xl p-6 shadow-sm relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+                        <div class="text-emerald-700 font-extrabold text-lg mb-3 flex items-center relative z-10"><span class="bg-emerald-100 text-emerald-800 border-2 border-emerald-200 px-2 py-0.5 rounded-md text-sm mr-2 shadow-sm">Step 3</span> 展示與通知</div>
+                        <p class="text-slate-600 text-sm font-medium relative z-10">將彙整後的資訊視覺化呈現於儀表板，並透過 Email 或 Line 等管道自動發送即時通知。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 區塊 2：平台基礎設施 -->
+        <section class="mb-24 relative">
+            <div class="absolute left-8 top-20 bottom-0 w-1 bg-gradient-to-b from-slate-200 to-transparent hidden md:block rounded-full"></div>
+            
+            <div class="reveal">
+                <div class="flex items-start md:items-center mb-8">
+                    <div class="w-16 h-16 rounded-2xl bg-white border-2 border-slate-200 shadow-md flex items-center justify-center text-slate-800 font-black text-2xl mr-6 z-10 shrink-0 hidden md:flex">
+                        1
+                    </div>
+                    <div class="bold-card rounded-2xl p-6 flex-1 border-l-[8px] border-l-slate-400">
+                        <h2 class="text-2xl font-extrabold mb-3 flex items-center text-slate-800">
+                            <i data-lucide="cloud" class="mr-3 text-blue-600 stroke-[2.5]"></i> 雲端儲存與部署平台
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed text-lg font-medium">
+                            為確保通報流程順暢運作，本系統將基礎設施的任務精準分工至兩大雲端平台：<br><br>
+                            <strong class="text-slate-800 font-extrabold">1. 前端展示與自動化任務（GitHub）：</strong>作為版本控制的核心，運用 <strong class="text-blue-600 font-extrabold">GitHub Pages</strong> 達成 <span class="border-b-4 border-emerald-300 font-bold text-slate-800">Step 3 的即時資訊展示</span>，並結合 <strong class="text-blue-600 font-extrabold">GitHub Actions</strong> 實現 <span class="border-b-4 border-emerald-300 font-bold text-slate-800">Step 3 的自動化郵件通知</span>。<br>
+                            <strong class="text-slate-800 font-extrabold">2. 應用程式託管與執行（Hugging Face）：</strong>借助其 Spaces 服務高穩定、易部署的特性，目前專注於系統的 <span class="border-b-4 border-purple-300 font-bold text-slate-800">API 託管與網頁展示</span>，提供可靠的連線環境。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 卡片網格 1 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:pl-22 md:ml-24">
+                <!-- GitHub -->
+                <div class="bold-card hover-border-github rounded-2xl p-8 reveal flex flex-col relative overflow-hidden" style="transition-delay: 100ms;">
+                    <div class="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center mb-6 border-2 border-slate-200 shadow-sm">
+                        <i data-lucide="github" class="w-8 h-8 text-slate-800 stroke-[2.5]"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 mb-3 flex items-center">
+                        GitHub <span class="ml-3 px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-md border-2 border-emerald-200">支援 Step 3</span>
+                    </h3>
+                    <p class="text-slate-600 leading-relaxed font-medium mb-6">
+                        作為原始碼版本控制之核心，並提供完善的靜態展示與自動化擴充服務：
+                    </p>
+                    <div class="space-y-4 mt-auto">
+                        <div class="bg-slate-50 p-4 rounded-xl border-2 border-slate-100 flex items-start">
+                            <i data-lucide="globe" class="w-5 h-5 text-blue-600 mt-0.5 mr-3 shrink-0 stroke-[2.5]"></i>
+                            <div>
+                                <h4 class="text-slate-800 font-bold text-sm">GitHub Pages (網頁代管)</h4>
+                                <p class="text-slate-500 text-xs mt-1 font-medium">靜態網頁代管服務，負責將災情資訊即時視覺化並展示於前端儀表板。</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border-2 border-slate-100 flex items-start">
+                            <i data-lucide="zap" class="w-5 h-5 text-amber-500 mt-0.5 mr-3 shrink-0 stroke-[2.5]"></i>
+                            <div>
+                                <h4 class="text-slate-800 font-bold text-sm">GitHub Actions (自動化作業)</h4>
+                                <p class="text-slate-500 text-xs mt-1 font-medium">提供強大的 CI/CD 流程，支援觸發事件並即時發送 Email 警報通知。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hugging Face -->
+                <div class="bold-card hover-border-hf rounded-2xl p-8 reveal flex flex-col relative overflow-hidden" style="transition-delay: 200ms;">
+                    <div class="w-16 h-16 rounded-xl bg-amber-50 flex items-center justify-center mb-6 border-2 border-amber-200 shadow-sm">
+                        <span class="text-3xl">🤗</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 mb-3 flex items-center">
+                        Hugging Face <span class="ml-3 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-md border-2 border-purple-200">API 託管與展示</span>
+                    </h3>
+                    <p class="text-slate-600 leading-relaxed font-medium mb-6">
+                        全球領先的 AI 平台，在本系統中主要提供應用程式的部署環境。
+                    </p>
+                    <div class="space-y-4 mt-auto">
+                        <div class="bg-slate-50 p-4 rounded-xl border-2 border-slate-100 flex items-start">
+                            <i data-lucide="server" class="w-5 h-5 text-amber-600 mt-0.5 mr-3 shrink-0 stroke-[2.5]"></i>
+                            <div>
+                                <h4 class="text-slate-800 font-bold text-sm">Spaces (API 託管與網頁展示)</h4>
+                                <p class="text-slate-500 text-xs mt-1 font-medium">提供穩定且獨立的執行環境，目前僅專注於託管系統 API，並負責提供前端網頁的視覺展示。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 區塊 3：核心自動化驅動 -->
+        <section class="mb-24 relative">
+            <div class="absolute left-8 top-20 bottom-0 w-1 bg-gradient-to-b from-slate-200 to-transparent hidden md:block rounded-full"></div>
+            
+            <div class="reveal">
+                <div class="flex items-start md:items-center mb-8">
+                    <div class="w-16 h-16 rounded-2xl bg-white border-2 border-slate-200 shadow-md flex items-center justify-center text-slate-800 font-black text-2xl mr-6 z-10 shrink-0 hidden md:flex">
+                        2
+                    </div>
+                    <div class="bold-card rounded-2xl p-6 flex-1 border-l-[8px] border-l-cyan-500">
+                        <h2 class="text-2xl font-extrabold mb-3 flex items-center text-slate-800">
+                            <i data-lucide="cpu" class="mr-3 text-cyan-600 stroke-[2.5]"></i> 開發與整合核心工具
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed text-lg font-medium">
+                            驅動上述通報流程的兩項核心工具：<strong class="text-cyan-700 font-extrabold">Antigravity</strong> 屬於先進的自動化開發引擎，可大幅加速整體系統程式碼的建置效率；而 <strong class="text-emerald-600 font-extrabold">Openclaw</strong> 則作為智慧通訊與資料處理樞紐，能無縫串接各類通訊軟體，確實執行 <span class="border-b-4 border-blue-300 font-bold text-slate-800">Step 1 的第一線人員回報任務</span>。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 卡片網格 2 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:pl-22 md:ml-24">
+                <!-- Antigravity -->
+                <div class="bold-card hover-border-anti rounded-2xl p-8 reveal group" style="transition-delay: 100ms;">
+                    <div class="w-16 h-16 rounded-xl bg-cyan-50 flex items-center justify-center mb-6 border-2 border-cyan-200 shadow-sm">
+                        <i data-lucide="rocket" class="w-8 h-8 text-cyan-600 stroke-[2.5] transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 mb-3 flex items-center">
+                        Antigravity <span class="ml-3 px-2 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-md border-2 border-slate-200">建構引擎</span>
+                    </h3>
+                    <p class="text-slate-600 font-medium leading-relaxed">
+                        強大的程式碼自動生成引擎，專注於開發流程之自動化，能迅速將系統架構設計轉化為實際運作的應用程式。
+                    </p>
+                </div>
+
+                <!-- Openclaw -->
+                <div class="bold-card hover-border-claw rounded-2xl p-8 reveal group" style="transition-delay: 200ms;">
+                    <div class="w-16 h-16 rounded-xl bg-emerald-50 flex items-center justify-center mb-6 border-2 border-emerald-200 shadow-sm">
+                        <i data-lucide="bot" class="w-8 h-8 text-emerald-600 stroke-[2.5] transition-transform group-hover:scale-110"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 mb-3 flex items-center">
+                        Openclaw <span class="ml-3 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-md border-2 border-blue-200">支援 Step 1</span>
+                    </h3>
+                    <p class="text-slate-600 font-medium leading-relaxed">
+                        智慧對話與資料處理助手，具備串接 LINE 或 Telegram 等通訊軟體之能力，使第一線人員得以透過行動裝置高效率完成災情通報。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 區塊 4：語言模型部署策略與操作介面 -->
+        <section class="mb-24 relative">
+            <div class="absolute left-8 top-20 bottom-0 w-1 bg-gradient-to-b from-slate-200 to-transparent hidden md:block rounded-full"></div>
+            
+            <div class="reveal">
+                <div class="flex items-start md:items-center mb-8">
+                    <div class="w-16 h-16 rounded-2xl bg-white border-2 border-slate-200 shadow-md flex items-center justify-center text-slate-800 font-black text-2xl mr-6 z-10 shrink-0 hidden md:flex">
+                        3
+                    </div>
+                    <div class="bold-card rounded-2xl p-6 flex-1 border-l-[8px] border-l-purple-500">
+                        <h2 class="text-2xl font-extrabold mb-3 flex items-center text-slate-800">
+                            <i data-lucide="brain-circuit" class="mr-3 text-purple-600 stroke-[2.5]"></i> 核心大腦：語言模型之部署策略與操作介面
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed text-lg font-medium">
+                            驅動上述所有自動化流程的靈魂在於「大型語言模型 (LLM)」。為兼顧開發效率與系統整合，我們必須了解主流的計費模式與操作介面，以選擇最適合專案的架構。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 內容網格 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:pl-22 md:ml-24">
+                    <!-- 計費模式 -->
+                    <div class="bg-white border-2 border-slate-200 rounded-xl p-8 shadow-sm">
+                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center">
+                            <i data-lucide="credit-card" class="w-6 h-6 mr-3 text-purple-600 stroke-[2.5]"></i> 資源調度與計費雙軌制
+                        </h3>
+                        <ul class="space-y-6 text-slate-600">
+                            <li class="flex items-start">
+                                <span class="text-purple-500 mr-3 mt-1 font-black text-xl">■</span>
+                                <div>
+                                    <strong class="text-slate-800 font-bold text-lg">訂閱制 (Subscription)：</strong>
+                                    <p class="text-sm mt-1 font-medium">如 ChatGPT Plus 或 Claude Pro，以固定月費提供穩定的互動環境，適合前期邏輯測試與單次腳本生成。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-purple-500 mr-3 mt-1 font-black text-xl">■</span>
+                                <div>
+                                    <strong class="text-slate-800 font-bold text-lg">API 計量制 (Pay-as-you-go)：</strong>
+                                    <p class="text-sm mt-1 font-medium">按實際運算量計費。為本系統<strong class="text-purple-700 font-extrabold bg-purple-50 px-1 mx-1 rounded">核心採用模式</strong>，允許程式碼直接呼叫模型，實現無縫的系統自動化整合。</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 操作介面 -->
+                    <div class="bg-white border-2 border-slate-200 rounded-xl p-8 shadow-sm">
+                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center">
+                            <i data-lucide="terminal-square" class="w-6 h-6 mr-3 text-indigo-600 stroke-[2.5]"></i> AI 操作介面之演進
+                        </h3>
+                        <ul class="space-y-4 text-slate-600 font-medium">
+                            <li class="flex items-center p-4 rounded-lg bg-slate-50 border-2 border-slate-100">
+                                <i data-lucide="monitor" class="w-5 h-5 mr-4 text-slate-500 stroke-[2.5]"></i>
+                                <div class="flex-1">
+                                    <strong class="text-slate-800">網頁端 (Web UI)</strong>
+                                    <span class="block text-sm text-slate-500 mt-0.5">適合一般大眾日常對話。</span>
+                                </div>
+                            </li>
+                            <li class="flex items-center p-4 rounded-lg bg-slate-50 border-2 border-slate-100">
+                                <i data-lucide="layout-panel-left" class="w-5 h-5 mr-4 text-slate-500 stroke-[2.5]"></i>
+                                <div class="flex-1">
+                                    <strong class="text-slate-800">整合介面 (IDE Plugin)</strong>
+                                    <span class="block text-sm text-slate-500 mt-0.5">適合開發者於專案內輔助編程。</span>
+                                </div>
+                            </li>
+                            <li class="flex items-center p-4 rounded-lg bg-indigo-50 border-2 border-indigo-200 relative overflow-hidden shadow-inner">
+                                <div class="absolute left-0 top-0 bottom-0 w-2 bg-indigo-500"></div>
+                                <i data-lucide="terminal" class="w-5 h-5 mr-4 ml-2 text-indigo-600 stroke-[2.5]"></i>
+                                <div class="flex-1">
+                                    <strong class="text-indigo-800 font-extrabold">命令列 (CLI)</strong>
+                                    <span class="block text-sm text-indigo-600 mt-0.5 font-bold">進階自動化！直接嵌入部署工作流。</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 區塊 5：總結與預期效益 -->
+        <section class="mb-12 relative">
+            <div class="reveal">
+                <div class="flex items-start md:items-center mb-8">
+                    <div class="w-16 h-16 rounded-2xl bg-white border-2 border-slate-200 shadow-md flex items-center justify-center text-slate-800 font-black text-2xl mr-6 z-10 shrink-0 hidden md:flex">
+                        4
+                    </div>
+                    <div class="bold-card rounded-2xl p-6 flex-1 border-l-[8px] border-l-amber-400">
+                        <h2 class="text-2xl font-extrabold mb-3 flex items-center text-slate-800">
+                            <i data-lucide="target" class="mr-3 text-amber-500 stroke-[2.5]"></i> 系統導入之預期效益與總結
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed text-lg font-medium">
+                            透過上述 AI 開發工具與免費雲端基礎設施的完美結合，本系統徹底顛覆了傳統資訊系統的開發門檻，為防災應變帶來顯著的數位轉型效益：
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:pl-22 mt-8 md:ml-24">
+                    <div class="text-center p-8 bg-white rounded-2xl border-2 border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-16 h-16 mx-auto bg-amber-100 rounded-2xl border-2 border-amber-200 flex items-center justify-center mb-6">
+                            <i data-lucide="piggy-bank" class="w-8 h-8 text-amber-600 stroke-[2.5]"></i>
+                        </div>
+                        <h4 class="text-xl font-black text-slate-800 mb-3">低門檻與零成本</h4>
+                        <p class="text-sm text-slate-600 font-medium">利用開源工具與平台免費額度，大幅降低開發成本，讓專業人員能專注於防災領域知識的應用。</p>
+                    </div>
+                    
+                    <div class="text-center p-8 bg-white rounded-2xl border-2 border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-2xl border-2 border-emerald-200 flex items-center justify-center mb-6">
+                            <i data-lucide="timer" class="w-8 h-8 text-emerald-600 stroke-[2.5]"></i>
+                        </div>
+                        <h4 class="text-xl font-black text-slate-800 mb-3">極速開發與部署</h4>
+                        <p class="text-sm text-slate-600 font-medium">Antigravity 將原本耗時數月的編程工作縮短至數小時內完成，並實現一鍵推送與自動部署上線。</p>
+                    </div>
+
+                    <div class="text-center p-8 bg-white rounded-2xl border-2 border-slate-200 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="w-16 h-16 mx-auto bg-rose-100 rounded-2xl border-2 border-rose-200 flex items-center justify-center mb-6">
+                            <i data-lucide="shield" class="w-8 h-8 text-rose-600 stroke-[2.5]"></i>
+                        </div>
+                        <h4 class="text-xl font-black text-slate-800 mb-3">高韌性應變體系</h4>
+                        <p class="text-sm text-slate-600 font-medium">透過 Openclaw 即時解析混亂的災區回報，轉化為結構化數據，全面提升跨單位的溝通與指揮效率。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 頁尾互動提示 -->
+        <div class="text-center mt-12 pb-12 reveal" style="transition-delay: 300ms;">
+            <p class="text-slate-500 font-bold flex items-center justify-center text-sm">
+                <i data-lucide="mouse" class="w-5 h-5 mr-2 stroke-[2.5]"></i> 滾動以探索更多系統細節
+            </p>
         </div>
 
     </main>
 
-    <!-- 底部控制列 -->
-    <footer class="bg-white border-t-6 brutal-border p-4 md:p-6 flex items-center justify-between z-50">
-        <button id="btn-prev" class="brutal-button bg-yellow-300 hover:bg-yellow-400 text-slate-900 px-6 py-3 rounded-xl font-bold text-xl flex items-center gap-2">
-            <i data-lucide="arrow-left" class="w-6 h-6 border-slate-900"></i>
-            <span class="hidden md:inline">上一頁</span>
-        </button>
-        
-        <div class="flex items-center gap-4">
-            <div class="px-6 py-3 bg-slate-100 brutal-border rounded-xl font-black text-2xl tracking-wider">
-                <span id="current-page">1</span> / <span id="total-pages">20</span>
-            </div>
-            <div class="hidden md:flex items-center gap-2 text-slate-500 font-bold text-sm bg-white px-3 py-1 rounded-lg border-2 border-slate-200">
-                <i data-lucide="keyboard" class="w-5 h-5"></i> 支援方向鍵 ⬅ ➡
-            </div>
-        </div>
-
-        <button id="btn-next" class="brutal-button bg-emerald-400 hover:bg-emerald-500 text-slate-900 px-6 py-3 rounded-xl font-bold text-xl flex items-center gap-2">
-            <span class="hidden md:inline">下一頁</span>
-            <i data-lucide="arrow-right" class="w-6 h-6 border-slate-900"></i>
-        </button>
-    </footer>
-
-    <!-- 投影片資料與邏輯 -->
+    <!-- 互動邏輯腳本 -->
     <script>
-        const slideData = [
-            {
-                title: "從自動生成程式碼到無縫部署",
-                subtitle: "運用 Antigravity 與 Openclaw 打造即時防災資訊系統",
-                isCover: true,
-                points: [],
-                script: "大家好，歡迎來到今天的演講。我是陳達毅。今天我想和大家分享一個非常實用的主題：如何運用最新的 AI 技術，包含 Antigravity 和 Openclaw，從零開始、完全自動化地打造一套「即時防災資訊系統」。希望透過今天的分享，能讓大家看到降低開發門檻後，我們能如何高效率地解決真實世界的問題。"
-            },
-            {
-                title: "引言 - 賦能時代的到來",
-                icon: "rocket",
-                bgColor: "bg-blue-100",
-                points: [
-                    "AI 不再只是聊天機器人，而是「生產力工具」。",
-                    "將想法轉化為現實的門檻正在急遽降低。"
-                ],
-                script: "過去幾年，我們見證了人工智慧的爆發。但今天的重點不是 AI 能聊什麼，而是它能「做」什麼。我們正處於一個賦能的時代，只要你有解決問題的想法，即使沒有深厚的程式背景，也能透過自然語言將想法轉化為實際運作的系統。"
-            },
-            {
-                title: "新時代的系統開發協作模式",
-                icon: "users",
-                bgColor: "bg-amber-100",
-                points: [
-                    "大腦：大語言模型 (LLM) - 負責理解需求與邏輯。",
-                    "手腳：Antigravity & Openclaw - 實際執行的機器人。",
-                    "舞台：GitHub & Hugging Face - 資料儲存、展示與 API 平台。"
-                ],
-                script: "我們可以把現在的開發模式想像成一個團隊合作。大語言模型就像是團隊的「大腦」，越來越聰明，負責理解我們用自然語言提出的需求；而 Antigravity 和 Openclaw 則是能實際做事的「手腳」，負責把程式碼寫出來並放到對的地方。最後，GitHub 和 Hugging Face 就是我們的「舞台」，用來存放資料、展示成果，並提供 API 服務。"
-            },
-            {
-                title: "零成本創造無限可能",
-                icon: "gift",
-                bgColor: "bg-green-100",
-                points: [
-                    "上述提及的核心工具與平台，皆有免費額度或開源方案。",
-                    "為所有人創造絕佳機會，打造感興趣的專案。"
-                ],
-                script: "最棒的一點是，剛才提到的所有基礎設施與工具，我們幾乎都能在免費的狀態下使用。這意味著什麼？這代表在座的每一個人，都有一個絕佳的機會，零成本去創造任何你感興趣、或對社會有幫助的資訊系統。"
-            },
-            {
-                title: "今天的核心目標",
-                icon: "target",
-                bgColor: "bg-red-100",
-                points: [
-                    "實際展示如何透過新技術實作資訊系統。",
-                    "見證 AI 提供快速建置系統的威力。"
-                ],
-                script: "今天的演講不會只是紙上談兵。我的核心目標，是帶領大家走過一遍完整的流程，實際展示如何透過這些 AI 工具，快速、甚至一鍵建置出一套系統。我們要讓大家親眼見證這個自動化工作流的威力。"
-            },
-            {
-                title: "實戰情境 - 颱風即時災情回報",
-                icon: "cloud-lightning",
-                bgColor: "bg-slate-200",
-                points: [
-                    "情境：颱風期間的災情彙整。",
-                    "挑戰：第一線人員需至現場勘查，資訊傳遞易有落差。"
-                ],
-                script: "為了讓大家更有感覺，我們設定一個台灣常見的情境：颱風天。颱風期間，各地都需要即時回報災情。在很多情況下，必須派出第一線人員到現場勘查（例如路樹倒塌、淹水），才能確實掌握狀況。傳統的回報方式可能透過電話或群組，不僅資訊零散，也難以統整。"
-            },
-            {
-                title: "資訊系統的三大核心需求",
-                icon: "list-checks",
-                bgColor: "bg-indigo-100",
-                points: [
-                    "a. 輕鬆回報：方便第一線人員傳遞資訊至處理中心。",
-                    "b. 集中管理：資訊的展示與永久保存。",
-                    "c. 即時推播：自動通知相關人員最新災情。"
-                ],
-                script: "因此，我們需要一套系統來解決這個痛點。這套系統必須滿足三個條件：第一，操作門檻要極低，最好用他們平常就在用的 LINE 或 Telegram 就能回報；第二，資料必須被有系統地儲存並展示出來；第三，一旦有重大災情，系統要能自動通知指揮中心或相關人員。"
-            },
-            {
-                title: "認識我們的武器庫",
-                icon: "wrench",
-                bgColor: "bg-yellow-100",
-                points: [
-                    "GitHub：版本控制與靜態網頁代管。",
-                    "Hugging Face：AI 模型存放區與強大的 API 託管平台。"
-                ],
-                script: "接下來，我們來拆解這套系統的武器庫。首先是資料保存與展示的地方：大家熟悉的 GitHub 可以幫我們做版本控制，甚至透過 GitHub Pages 展示前端網頁；而 Hugging Face 不僅僅是 AI 模型的集散地，它提供的 Spaces 功能非常適合用來託管我們的後端 API 或微型資料庫，穩定且易於部署。"
-            },
-            {
-                title: "認識我們的武器庫 (續)",
-                icon: "swords",
-                bgColor: "bg-orange-100",
-                points: [
-                    "Antigravity：自動生成程式碼的強大引擎，專注於開發流程自動化。",
-                    "Openclaw：智慧助手，擅長串接通訊軟體與即時訊息處理。"
-                ],
-                script: "再來是今天的兩位主角。Antigravity 是一個自動化開發工具，你只要告訴它你想做什麼，它就能幫你生成架構與程式碼；而 Openclaw 則像是一個超強的客服兼資料處理員，它可以輕鬆串接 LINE 或 Telegram，作為第一線人員的操作介面。"
-            },
-            {
-                title: "語言模型的兩種使用方式",
-                icon: "brain-circuit",
-                bgColor: "bg-fuchsia-100",
-                points: [
-                    "訂閱制 (Subscription)：如 ChatGPT Plus, Claude Pro 等，適合日常互動與簡單任務。",
-                    "API 制 (Pay-as-you-go)：適合開發者串接系統，按使用量計費，彈性高。"
-                ],
-                script: "在驅動這些工具之前，我們需要選擇「大腦」。目前使用大語言模型有兩種主流方式：一種是大家熟悉的訂閱制，每月付固定費用使用網頁版；另一種是 API 制，也就是用多少算多少，這也是我們開發系統、讓程式互相溝通時所需要使用的方式。"
-            },
-            {
-                title: "生成式 AI 的三種使用介面",
-                icon: "monitor",
-                bgColor: "bg-cyan-100",
-                points: [
-                    "網頁端 (Web UI)：最普及，適合一般對話。",
-                    "整合介面 (IDE Plugin/GUI)：適合開發者，直接在程式編輯器中呼叫。",
-                    "命令列 (CLI)：進階自動化，將 AI 無縫嵌入工作流。"
-                ],
-                script: "我們怎麼跟這個大腦溝通呢？主要有三種介面：一般大眾最常用的是網頁端；開發者可能會使用整合介面，也就是直接在寫程式的軟體裡呼叫 AI；而今天我們要展示的最高效方式之一，是透過命令列（CLI），這讓我們能將指令直接變成自動化流程的一部分。"
-            },
-            {
-                title: "逐步建置 - Step 1: 自然語言提出需求",
-                icon: "message-square-text",
-                bgColor: "bg-lime-100",
-                points: [
-                    "撰寫 Prompt（提示詞）。",
-                    "明確定義資料結構（時間、地點、災情類型、照片）。"
-                ],
-                script: "好，現在我們進入實戰階段。第一步，我們不寫程式碼，我們寫「自然語言」。我們對機器人下達需求：「請幫我寫一個災情回報的 API 伺服器，需要包含時間、地點和災情描述欄位。」只要你的邏輯清晰，大腦就能理解。"
-            },
-            {
-                title: "逐步建置 - Step 2: Antigravity 自動生成",
-                icon: "cpu",
-                bgColor: "bg-teal-100",
-                points: [
-                    "解析自然語言指令。",
-                    "自動產出後端程式碼與部署設定檔。"
-                ],
-                script: "第二步，Antigravity 接手。它會把我們剛才的自然語言，轉譯成系統能看懂的程式碼。它不只寫出處理災情資料的邏輯，還會一併生成等一下部署所需要的設定檔，整個過程幾秒鐘就完成了。"
-            },
-            {
-                title: "逐步建置 - Step 3: 無縫部署至雲端",
-                icon: "cloud-upload",
-                bgColor: "bg-blue-200",
-                points: [
-                    "一鍵推播 (Push) 程式碼至 GitHub。",
-                    "連動 Hugging Face Space 進行自動構建與上線。"
-                ],
-                script: "第三步是部署。過去部署系統很麻煩，要搞懂伺服器設定。現在，透過 Antigravity 的腳本，我們可以一鍵將程式碼推送到 GitHub。而 Hugging Face 偵測到 GitHub 的更新後，會自動抓取最新的程式碼並上線。我們的雲端資料處理中心就這樣架設完畢了。"
-            },
-            {
-                title: "逐步建置 - Step 4: Openclaw 串接通訊軟體",
-                icon: "smartphone",
-                bgColor: "bg-purple-200",
-                points: [
-                    "設定 LINE Bot 或 Telegram Bot 權杖 (Token)。",
-                    "將 Openclaw 與通訊軟體綁定。"
-                ],
-                script: "伺服器有了，接下來我們要解決第一線人員的輸入問題。我們使用 Openclaw。我們只需要去 LINE 或 Telegram 申請一個機器人的 Token，然後交給 Openclaw，它就能立刻化身為災情通報機器人，出現在使用者的手機裡。"
-            },
-            {
-                title: "逐步建置 - Step 5: 即時訊息解讀與格式化",
-                icon: "zap",
-                bgColor: "bg-amber-200",
-                points: [
-                    "第一線人員輸入口語化文字（例如：「忠孝東路這邊樹倒了，壓到車」）。",
-                    "Openclaw (AI) 自動萃取關鍵字，轉為固定格式上傳。"
-                ],
-                script: "這是這套系統最聰明的地方。勘災人員在狂風暴雨中，不可能慢慢填表單。他只需要在 LINE 裡面用語音或文字說：「忠孝東路一段這邊路樹倒塌，雙向不通。」Openclaw 背後的 AI 會「即時解讀」這句話，自動把地點和災情分類萃取出來，轉換成標準的格式，上傳到我們剛剛架好的 Hugging Face 平台。"
-            },
-            {
-                title: "逐步建置 - Step 6: 資訊展示與自動推播",
-                icon: "bell-ring",
-                bgColor: "bg-rose-200",
-                points: [
-                    "資料儲存後，觸發 Webhook。",
-                    "自動將最新嚴重災情轉發至指揮中心群組。"
-                ],
-                script: "最後一步，當平台收到新的資料後，不僅會在網頁後台展示出來，系統還會根據我們設定的規則（例如：牽涉到道路中斷），自動發送通知到指揮中心的群組。這樣就完成了我們一開始設定的三大需求：輕鬆回報、集中管理、即時推播。"
-            },
-            {
-                title: "系統架構總覽",
-                icon: "monitor-play",
-                bgColor: "bg-slate-300",
-                points: [
-                    "展示實際操作畫面 (Live Demo / 錄影展示)。",
-                    "從手機傳訊息到網頁更新的流暢過程。"
-                ],
-                script: "（此處可搭配一段 2-3 分鐘的實際操作影片或 Live Demo）大家現在畫面上看到的，就是剛剛描述的流程實際運作的樣子。左邊是手機操作 LINE，右邊是系統後台。我們傳送訊息，幾秒鐘後，後台資料庫就更新了。這就是全自動化流程的威力。"
-            },
-            {
-                title: "總結 - 低門檻、高效率的韌性防線",
-                icon: "shield-check",
-                bgColor: "bg-emerald-200",
-                points: [
-                    "技術不再是壁壘，想法才是核心。",
-                    "快速迭代，全面提升減災應變韌性。"
-                ],
-                script: "總結今天的流程，我們看到了什麼？我們看到技術的壁壘已經被打破。我們不再需要幾個月的時間和龐大的工程團隊來建置一套防災系統。透過 Antigravity、Openclaw 以及現成的免費平台，我們可以用極低的門檻、極高的效率，打造出具備實戰能力的即時防災監測體系。"
-            },
-            {
-                title: "Take Home Message & Q&A",
-                icon: "message-circle-question",
-                bgColor: "bg-yellow-300",
-                points: [
-                    "核心訊息：AI 是工具，你的領域知識才是靈魂。現在就動手打造你的系統吧！",
-                    "開放現場問答。"
-                ],
-                script: "最後，我想給大家的 Take Home Message 是：AI 是極度強大的工具，但賦予它價值的，是各位在防災、應變領域的專業知識（Domain Knowledge）。工具都已經準備好且免費開放了，現在，就輪到你們動手，把想法變成現實了！謝謝大家，現在開放問答。"
-            }
-        ];
-
-        let currentIndex = 0;
-        const container = document.getElementById('slides-container');
-        const btnPrev = document.getElementById('btn-prev');
-        const btnNext = document.getElementById('btn-next');
-        const spanCurrent = document.getElementById('current-page');
-        const spanTotal = document.getElementById('total-pages');
-        const progressBar = document.getElementById('progress-bar');
-
-        // 渲染投影片內容
-        function renderSlide(index) {
-            const data = slideData[index];
-            container.innerHTML = ''; // 清空內容
-            
-            const slideDiv = document.createElement('div');
-            slideDiv.className = `w-full h-full p-6 md:p-12 rounded-[2rem] brutal-border brutal-shadow flex flex-col slide-enter ${data.bgColor || 'bg-white'} overflow-y-auto no-scrollbar relative`;
-
-            if (data.isCover) {
-                // 封面特殊排版
-                slideDiv.innerHTML = `
-                    <div class="flex-1 flex flex-col items-center justify-center text-center">
-                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white brutal-border mb-8">
-                            <i data-lucide="sparkles" class="w-12 h-12 text-slate-800"></i>
-                        </div>
-                        <h1 class="text-5xl md:text-7xl font-black mb-8 leading-tight tracking-tight">${data.title}</h1>
-                        <h2 class="text-3xl md:text-4xl font-bold text-slate-700 mb-12 bg-white px-6 py-3 rounded-2xl brutal-border inline-block">${data.subtitle}</h2>
-                        <div class="text-2xl font-bold bg-slate-800 text-white px-8 py-4 rounded-xl brutal-border shadow-[4px_4px_0px_0px_#fff]">
-                            講者：[您的姓名/職稱]
-                        </div>
-                    </div>
-                `;
-            } else {
-                // 一般投影片排版
-                let pointsHtml = '';
-                if (data.points && data.points.length > 0) {
-                    pointsHtml = `
-                        <div class="mb-8 flex-1">
-                            <h3 class="text-3xl font-black mb-6 flex items-center gap-3 bg-white inline-flex px-5 py-2 rounded-xl brutal-border shadow-[4px_4px_0px_0px_rgba(30,41,59,1)]">
-                                <i data-lucide="check-square" class="w-8 h-8 text-emerald-500"></i>
-                                核心要點
-                            </h3>
-                            <ul class="space-y-6">
-                                ${data.points.map(point => `
-                                    <li class="flex items-start gap-4 text-2xl md:text-3xl font-bold text-slate-800 leading-relaxed bg-white/60 p-4 rounded-2xl border-4 border-slate-800">
-                                        <div class="mt-1 shrink-0 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-800"></div>
-                                        <span>${point}</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                slideDiv.innerHTML = `
-                    <div class="flex items-center gap-6 mb-10 border-b-8 border-slate-800 pb-6">
-                        <div class="w-20 h-20 rounded-2xl bg-white brutal-border flex items-center justify-center shrink-0 shadow-[6px_6px_0px_0px_rgba(30,41,59,1)]">
-                            <i data-lucide="${data.icon || 'star'}" class="w-10 h-10 text-slate-800"></i>
-                        </div>
-                        <h2 class="text-4xl md:text-5xl font-black tracking-tight">${data.title}</h2>
-                    </div>
-                    
-                    ${pointsHtml}
-                `;
-            }
-
-            // 加入講稿按鈕與區塊
-            if (data.script) {
-                const scriptSection = document.createElement('div');
-                scriptSection.className = 'mt-auto pt-6 border-t-4 border-slate-800 border-dashed';
-                scriptSection.innerHTML = `
-                    <button onclick="toggleScript(this)" class="brutal-button bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-xl flex items-center gap-2 mb-4 hover:bg-slate-700">
-                        <i data-lucide="mic" class="w-6 h-6 text-yellow-300"></i>
-                        <span>展開講者講稿</span>
-                        <i data-lucide="chevron-down" class="w-5 h-5 ml-2 toggle-icon transition-transform"></i>
-                    </button>
-                    <div class="script-content hidden bg-white brutal-border p-6 rounded-2xl shadow-[6px_6px_0px_0px_rgba(30,41,59,1)]">
-                        <p class="text-2xl font-bold text-slate-700 leading-relaxed tracking-wide">
-                            ${data.script}
-                        </p>
-                    </div>
-                `;
-                slideDiv.appendChild(scriptSection);
-            }
-
-            container.appendChild(slideDiv);
+        document.addEventListener("DOMContentLoaded", () => {
+            // 初始化 Lucide 圖示
             lucide.createIcons();
-            updateControls();
-        }
 
-        // 切換講稿顯示
-        window.toggleScript = function(btn) {
-            const content = btn.nextElementSibling;
-            const icon = btn.querySelector('.toggle-icon');
-            content.classList.toggle('hidden');
-            if(content.classList.contains('hidden')) {
-                icon.style.transform = 'rotate(0deg)';
-                btn.querySelector('span').innerText = '展開講者講稿';
-            } else {
-                icon.style.transform = 'rotate(180deg)';
-                btn.querySelector('span').innerText = '隱藏講者講稿';
-                // 稍微捲動讓講稿清楚顯示
-                content.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
-        }
+            // 設定 Intersection Observer 達成滾動淡入效果
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15 // 當元素有 15% 進入視窗時觸發
+            };
 
-        // 更新按鈕與進度列狀態
-        function updateControls() {
-            btnPrev.disabled = currentIndex === 0;
-            btnNext.disabled = currentIndex === slideData.length - 1;
-            spanCurrent.textContent = currentIndex + 1;
-            
-            // 計算進度列百分比
-            const progress = ((currentIndex) / (slideData.length - 1)) * 100;
-            progressBar.style.width = `${progress}%`;
-        }
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // 加入 active class 觸發 CSS 動畫
+                        entry.target.classList.add('active');
+                        // 觸發後解除觀察，確保動畫只播放一次
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
 
-        // 綁定事件
-        btnPrev.addEventListener('click', () => {
-            if (currentIndex > 0) {
-                currentIndex--;
-                renderSlide(currentIndex);
-            }
+            // 觀察所有帶有 .reveal class 的元素
+            const revealElements = document.querySelectorAll('.reveal');
+            revealElements.forEach(el => {
+                observer.observe(el);
+            });
         });
-
-        btnNext.addEventListener('click', () => {
-            if (currentIndex < slideData.length - 1) {
-                currentIndex++;
-                renderSlide(currentIndex);
-            }
-        });
-
-        // 鍵盤左右鍵切換
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') {
-                btnNext.click();
-            } else if (e.key === 'ArrowLeft') {
-                btnPrev.click();
-            }
-        });
-
-        // 初始化
-        spanTotal.textContent = slideData.length;
-        renderSlide(currentIndex);
-
     </script>
 </body>
 </html>
